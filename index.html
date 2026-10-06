@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CFD Screen</title>
+<meta name="description" content="Long and short swing setups on major indices and large-cap shares, sized for leverage, margin, spread and overnight funding — rebuilt on fresh prices every weekday.">
+<meta name="theme-color" content="#F6F7F5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#131519" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CFD Screen">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<script>
+try {
+  // Dark by default. A choice made here, or in the other apps on this origin, wins.
+  var pick = function (v) { return v === "dark" || v === "light" ? v : null; };
+  var saved = localStorage.getItem("cfd-screen-theme")
+           || pick(localStorage.getItem("event-screen-theme-v2"))
+           || pick(localStorage.getItem("morning-brief-theme")) || "dark";
+  if (saved === "dark" || saved === "light") document.documentElement.setAttribute("data-theme", saved);
+} catch (e) {}
+</script>
+<style>
+:root {
+  --bg:#F6F7F5; --panel:#FFFFFF; --panel-2:#EEF1EE; --ink:#1B1F1E; --soft:#5C6663; --faint:#8E9895;
+  --line:#DDE3E0; --accent:#0E6E6E; --accent-2:#DCEDEC; --up:#1F7A4D; --up-2:#E3F2E9;
+  --down:#B23A2F; --down-2:#F8E7E4; --warn:#8A5A08; --warn-2:#FAF0DC; --cool:#2C5F8A; --cool-2:#E3EDF5;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme=light]) {
+    --bg:#131519; --panel:#1B1E24; --panel-2:#22262D; --ink:#EDEFF2; --soft:#A2AAB5; --faint:#79818C;
+    --line:#2C3138; --accent:#4FB5B0; --accent-2:#13322F; --up:#6DBE8E; --up-2:#16301F;
+    --down:#E87A70; --down-2:#39211E; --warn:#D9A244; --warn-2:#352A14; --cool:#72A8D4; --cool-2:#1A2B38;
+  }
+}
+:root[data-theme=dark] {
+  --bg:#131519; --panel:#1B1E24; --panel-2:#22262D; --ink:#EDEFF2; --soft:#A2AAB5; --faint:#79818C;
+  --line:#2C3138; --accent:#4FB5B0; --accent-2:#13322F; --up:#6DBE8E; --up-2:#16301F;
+  --down:#E87A70; --down-2:#39211E; --warn:#D9A244; --warn-2:#352A14; --cool:#72A8D4; --cool-2:#1A2B38;
+}
+* { box-sizing:border-box; -webkit-text-size-adjust:100%; }
+body { margin:0; background:var(--bg); color:var(--ink);
+  font:17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+.wrap { max-width:760px; margin:0 auto; padding:26px 18px 72px; }
+.num { font-variant-numeric:tabular-nums; }
+
+header.top { position:relative; margin-bottom:22px; }
+.themebtn { position:absolute; top:2px; right:0; background:var(--panel); color:var(--faint); border:1px solid var(--line);
+  border-radius:6px; padding:6px 12px; font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; font-family:inherit; cursor:pointer; }
+.themebtn:hover { color:var(--accent); border-color:var(--accent); }
+h1 { font:600 15px/1 inherit; letter-spacing:.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+.title { font-size:30px; font-weight:700; letter-spacing:-.02em; margin:0; }
+.stamp { color:var(--faint); font-size:14px; margin:6px 0 0; }
+.stamp.stale { color:var(--warn); }
+
+.lead { color:var(--soft); font-size:16px; margin:0 0 14px; max-width:64ch; }
+.lead b { color:var(--ink); font-weight:600; }
+h2 { font:700 13px/1 inherit; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin:36px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--line); }
+
+/* market bias */
+.bias { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+@media (max-width:560px) { .bias { grid-template-columns:1fr 1fr; } }
+.bias div { background:var(--panel); border:1px solid var(--line); border-top:4px solid var(--line); border-radius:10px; padding:10px 12px; }
+.bias div.up { border-top-color:var(--up); } .bias div.down { border-top-color:var(--down); }
+.bias b { display:block; font-size:15px; } .bias .dir { font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.bias .up .dir { color:var(--up); } .bias .down .dir { color:var(--down); } .bias .mixed .dir { color:var(--faint); }
+.bias span.m { display:block; color:var(--soft); font-size:13.5px; }
+.bias-sum { color:var(--soft); font-size:15px; margin:10px 0 0; }
+
+/* settings */
+details.settings { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:0 16px; margin:18px 0 0; }
+details.settings summary { padding:13px 0; cursor:pointer; font-weight:600; display:flex; justify-content:space-between; gap:12px; }
+details.settings summary span { color:var(--soft); font-weight:400; font-size:14.5px; text-align:right; }
+.grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px 14px; padding:0 0 14px; }
+@media (max-width:560px) { .grid { grid-template-columns:1fr 1fr; } }
+.grid label span { display:block; font-size:11.5px; letter-spacing:.07em; text-transform:uppercase; font-weight:700; color:var(--soft); margin-bottom:4px; }
+.grid input, .edit input { width:100%; font:600 16px/1.2 inherit; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--panel-2); color:var(--ink); font-variant-numeric:tabular-nums; }
+.grid .wide { grid-column:1 / -1; color:var(--faint); font-size:13.5px; margin:0; }
+.grid .reset, .edit .reset { font:600 13px/1 inherit; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:var(--panel); color:var(--soft); cursor:pointer; }
+
+/* controls */
+.controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0 0 16px; position:sticky; top:0; z-index:5; background:var(--bg); padding:10px 0; }
+.controls .lbl { font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); font-weight:700; margin-right:2px; }
+.chip { font:600 14px/1 inherit; padding:9px 14px; border-radius:999px; border:1px solid var(--line); background:var(--panel); color:var(--soft); cursor:pointer; }
+.chip[aria-pressed=true] { background:var(--accent); border-color:var(--accent); color:#fff; }
+.controls .sep { width:1px; height:22px; background:var(--line); margin:0 4px; }
+@media (max-width:560px) { .controls { position:static; } }
+
+/* cards */
+.cards { display:flex; flex-direction:column; gap:14px; }
+.card { background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--line); border-radius:12px; padding:18px 18px 14px; }
+.card.long { border-left-color:var(--up); } .card.short { border-left-color:var(--down); }
+.who { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.rank { color:var(--faint); font-weight:700; font-size:15px; min-width:22px; }
+.card h3 { margin:0; font-size:23px; font-weight:700; letter-spacing:-.015em; }
+.side { font-size:15px; font-weight:800; letter-spacing:.1em; padding:5px 12px; border-radius:6px; color:var(--bg); }
+.side.long { background:var(--up); } .side.short { background:var(--down); }
+.tag { font-size:11px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; padding:3px 8px; border-radius:4px; background:var(--panel-2); color:var(--soft); }
+.tag.index { background:var(--cool-2); color:var(--cool); } .tag.watch { background:var(--accent-2); color:var(--accent); }
+.meta { margin:6px 0 0; color:var(--soft); font-size:14.5px; }
+.meta b { color:var(--ink); }
+
+.levels { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:14px 0 6px; }
+@media (max-width:560px) { .levels { grid-template-columns:1fr; } }
+.lvl { border-radius:10px; padding:12px 13px 11px; background:var(--panel-2); }
+.lvl.now { background:var(--accent-2); } .lvl.up { background:var(--up-2); } .lvl.dn { background:var(--down-2); }
+.lvl .k { display:block; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; color:var(--soft); }
+.lvl.now .k { color:var(--accent); } .lvl.up .k { color:var(--up); } .lvl.dn .k { color:var(--down); }
+.lvl .v { display:block; font-size:28px; font-weight:700; letter-spacing:-.02em; margin:4px 0 2px; font-variant-numeric:tabular-nums; line-height:1.1; }
+.lvl .v small { font-size:15px; font-weight:600; color:var(--soft); margin-left:4px; }
+.lvl.up .v small { color:var(--up); } .lvl.dn .v small { color:var(--down); }
+.lvl .w { display:block; font-size:13.5px; color:var(--soft); line-height:1.4; }
+
+.chart { width:100%; height:auto; display:block; margin:10px 0 4px; }
+.chart-key { display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:var(--faint); margin:0 0 10px; }
+.chart-key i { display:inline-block; width:14px; height:0; border-top:2px solid; vertical-align:middle; margin-right:5px; }
+
+.trade { background:var(--panel-2); border-radius:10px; padding:12px 14px; margin:8px 0 12px; }
+.trade h4 { margin:0 0 8px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--soft); }
+.tgrid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px 14px; }
+@media (max-width:560px) { .tgrid { grid-template-columns:1fr 1fr; } }
+.tgrid div span { display:block; font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); font-weight:700; }
+.tgrid div b { font-size:19px; font-variant-numeric:tabular-nums; }
+.tgrid b.pos { color:var(--up); } .tgrid b.neg { color:var(--down); }
+.trade p { margin:8px 0 0; font-size:14px; color:var(--soft); }
+.edit { display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end; margin:10px 0 0; }
+.edit label span { display:block; font-size:11.5px; letter-spacing:.07em; text-transform:uppercase; font-weight:700; margin-bottom:4px; }
+.edit label.eu span { color:var(--up); } .edit label.ed span { color:var(--down); }
+.edit input.edited { border-color:var(--accent); }
+.edit .reset[disabled] { opacity:.45; cursor:default; }
+
+.flag { background:var(--warn-2); border-left:4px solid var(--warn); border-radius:8px; padding:9px 12px; margin:0 0 10px; font-size:14.5px; }
+.flag.bad { background:var(--down-2); border-left-color:var(--down); }
+
+.scoreline { display:flex; gap:22px; align-items:flex-end; flex-wrap:wrap; margin:4px 0 8px; }
+.score .v { display:block; font-size:34px; font-weight:700; line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums; color:var(--accent); }
+.score .k { display:block; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); font-weight:700; margin-top:3px; }
+.score.other .v { font-size:22px; color:var(--faint); }
+.score.rr .v { color:var(--ink); }
+details.why { border-top:1px solid var(--line); padding-top:10px; }
+details.why summary { cursor:pointer; font-weight:600; color:var(--accent); font-size:15px; list-style:none; }
+details.why summary::-webkit-details-marker { display:none; }
+details.why summary::before { content:"▸ "; } details.why[open] summary::before { content:"▾ "; }
+.bars { margin-top:10px; }
+.bar { display:grid; grid-template-columns:170px 1fr 30px; gap:8px; align-items:center; margin-bottom:5px; font-size:13.5px; color:var(--soft); }
+.bar .track { height:6px; background:var(--line); border-radius:3px; overflow:hidden; }
+.bar .fill { display:block; height:100%; border-radius:3px; background:var(--accent); } .bar .fill.pen { background:var(--down); }
+.bar b { text-align:right; color:var(--faint); font-weight:600; }
+.facts { margin:10px 0 0; font-size:14px; color:var(--soft); }
+
+.quiet { list-style:none; padding:0; margin:0; background:var(--panel); border:1px solid var(--line); border-radius:12px; }
+.quiet li { display:flex; justify-content:space-between; gap:12px; padding:11px 16px; border-bottom:1px solid var(--line); font-size:15px; }
+.quiet li:last-child { border-bottom:none; }
+.quiet small { display:block; color:var(--soft); font-size:13.5px; }
+.quiet .sc { text-align:right; white-space:nowrap; color:var(--soft); font-size:14px; font-variant-numeric:tabular-nums; }
+.quiet .sc b.l { color:var(--up); } .quiet .sc b.s { color:var(--down); }
+.empty { background:var(--panel); border:1px dashed var(--line); border-radius:12px; padding:18px; color:var(--soft); }
+
+details.meth { margin-top:32px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:0 16px; }
+details.meth summary { padding:14px 0; cursor:pointer; font-weight:600; }
+details.meth .body { padding:0 0 14px; color:var(--soft); font-size:15px; }
+details.meth code { background:var(--panel-2); padding:1px 5px; border-radius:4px; font-size:13.5px; color:var(--ink); }
+.note { color:var(--faint); font-size:13.5px; line-height:1.55; margin-top:40px; padding-top:18px; border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <button id="theme" class="themebtn" type="button" aria-label="Switch theme"></button>
+  <h1>CFD Screen</h1>
+  <p class="title" id="title">Loading…</p>
+  <p class="stamp" id="stamp"></p>
+</header>
+
+<p class="lead">Long and short swing setups for a <b>few-day hold</b> on the four major indices and large-cap US and UK shares. Each name is scored both ways, and the stronger side gets the card. Every card is <b>sized for your account</b>: margin, exposure, the £ at the stop, spread and overnight funding.</p>
+
+<details class="settings" id="settings">
+  <summary>Your account <span id="settings-sum"></span></summary>
+  <div class="grid">
+    <label><span>Account (£)</span><input type="number" data-k="account" min="0" step="100"></label>
+    <label><span>Risk per trade (%)</span><input type="number" data-k="risk" min="0" step="0.25"></label>
+    <label><span>Nights held</span><input type="number" data-k="nights" min="0" step="1"></label>
+    <label><span>Stop (× ATR)</span><input type="number" data-k="stopAtr" min="0.25" step="0.25"></label>
+    <label><span>Target (× ATR)</span><input type="number" data-k="targetAtr" min="0.25" step="0.25"></label>
+    <span></span>
+    <label><span>Leverage, indices</span><input type="number" data-k="levIndex" min="1" step="1"></label>
+    <label><span>Leverage, shares</span><input type="number" data-k="levShare" min="1" step="1"></label>
+    <span></span>
+    <label><span>Funding long (%/yr)</span><input type="number" data-k="fundLong" step="0.1"></label>
+    <label><span>Funding short (%/yr)</span><input type="number" data-k="fundShort" step="0.1"></label>
+    <span></span>
+    <label><span>Spread, indices (%)</span><input type="number" data-k="spreadIndex" min="0" step="0.01"></label>
+    <label><span>Spread, US shares (%)</span><input type="number" data-k="spreadUS" min="0" step="0.01"></label>
+    <label><span>Spread, UK shares (%)</span><input type="number" data-k="spreadUK" min="0" step="0.01"></label>
+    <p class="wide">Leverage defaults are the UK retail limits (major indices 20:1, shares 5:1). Funding and spread defaults are estimates: check the overnight fee and spread on the instrument page in Trading 212 and enter the real figures. A positive short funding figure is a cost; a negative one is a credit. Saved in this browser only.</p>
+    <button class="reset" type="button" id="settings-reset">Reset to defaults</button>
+  </div>
+</details>
+
+<h2>Market bias</h2>
+<div class="bias" id="bias"></div>
+<p class="bias-sum" id="bias-sum"></p>
+
+<h2>Setups</h2>
+<div class="controls">
+  <span class="lbl">Show</span>
+  <button class="chip" data-filter="all" aria-pressed="true">All</button>
+  <button class="chip" data-filter="long" aria-pressed="false">Longs</button>
+  <button class="chip" data-filter="short" aria-pressed="false">Shorts</button>
+  <button class="chip" data-filter="index" aria-pressed="false">Indices</button>
+  <span class="sep"></span>
+  <span class="lbl">Sort</span>
+  <button class="chip" data-sort="score" aria-pressed="true">Score</button>
+  <button class="chip" data-sort="rr" aria-pressed="false">Net R:R</button>
+</div>
+<div class="cards" id="cards"></div>
+
+<h2>No clear trade</h2>
+<p class="lead">Neither side has a setup, or the best side scores under 55. Both scores are shown, so you can see which way each one is leaning.</p>
+<ul class="quiet" id="quiet"></ul>
+
+<h2>Dated events</h2>
+<ul class="quiet" id="events"></ul>
+
+<details class="meth">
+  <summary>How the score and the levels are worked out</summary>
+  <div class="body">
+    <p>Everything is calculated from daily bars. The rules favour trading <b>with the trend</b>: the screen looks for either a pullback inside an existing trend or a break of the 20-day range, and never for a reversal. Each name is scored long and short, out of 100:</p>
+    <p><code>score = (trend×0.30 + setup×0.30 + relative strength×0.15 + market×0.25) × 10 − stretch×3 − event×2.5</code></p>
+    <p><b>Trend</b> (0–10): whether the price is on the right side of its 50-day average, whether the 50-day is rising (long) or falling (short), whether the 20-day is above or below the 50-day, and the price against the 200-day. <b>Setup</b> (0–10): a pullback scores when the trend is at least 7 and the price is near its 20-day average with RSI(14) pulled back towards 42 (58 for a short). A breakout scores 8 when the price clears the prior 20-day high (or low for a short) with the trend at 5 or more, falling to 5 if RSI is already past 75 (25 for a short). <b>Relative strength</b>: a share's 3-month return against its home index; an index's own 3-month return. <b>Market</b>: the trend score of the share's home index, or the average of all four for an index.</p>
+    <p><b>Stretch</b> is a penalty for being more than 1.5 ATR past the 20-day average in the direction of the trade, which is chasing. <b>Event</b> is a penalty when an earnings date falls inside your hold (10) or within a week after it (3), or when a central bank decision for that market falls inside your hold (5 for an index, 2 for a share).</p>
+    <p><b>The levels are mechanical, not forecasts.</b> <i>If it works</i> is the price plus your target multiple of ATR(14), the average daily range over 14 days. <i>If it fails</i> is the price minus your stop multiple. Change the multiples in Your account, or override them on any card. Position size is set so that a fill at the stop loses your risk per trade, converted to pounds at the build's exchange rate. Gaps can fill you well past the stop.</p>
+    <p><b>Net R:R</b> is the £ gained at the target minus spread and funding, divided by the £ lost at the stop plus spread and funding.</p>
+  </div>
+</details>
+<p class="note" id="note"></p>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  "use strict";
+  var S = window.__SCREEN__ || {};
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+  var store = { get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+  function loadJSON(k) { try { return JSON.parse(store.get(k) || "{}") || {}; } catch (e) { return {}; } }
+
+  // theme
+  var root = document.documentElement, btn = $("theme"), labels = { auto: "Auto", light: "Light", dark: "Dark" };
+  var pickT = function (v) { return v === "dark" || v === "light" ? v : null; };
+  var mode = store.get("cfd-screen-theme") || pickT(store.get("event-screen-theme-v2")) || pickT(store.get("morning-brief-theme")) || "dark";
+  if (!labels[mode]) mode = "dark";
+  function applyTheme() { if (mode === "auto") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", mode); btn.textContent = "Theme: " + labels[mode]; store.set("cfd-screen-theme", mode); }
+  btn.onclick = function () { mode = mode === "dark" ? "light" : mode === "light" ? "auto" : "dark"; applyTheme(); };
+  applyTheme();
+
+  var now = new Date();
+  $("title").textContent = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+
+  if (!S.ind) {
+    $("stamp").textContent = "Not built yet.";
+    $("cards").innerHTML = '<div class="empty">This page needs price history. Run <b>python3 build.py</b> and open <b>site/index.html</b>, or use the live site.</div>';
+    return;
+  }
+
+  // ------------------------------------------------------- settings
+  var DEFAULTS = { account: 10000, risk: 1, nights: 4, stopAtr: 1.5, targetAtr: 3, levIndex: 20, levShare: 5,
+                   fundLong: 6.5, fundShort: 1.0, spreadIndex: 0.02, spreadUS: 0.10, spreadUK: 0.15 };
+  var P = Object.assign({}, DEFAULTS, loadJSON("cfd-screen-settings"));
+  var inputs = document.querySelectorAll("#settings input[data-k]");
+  function fillSettings() { inputs.forEach(function (el) { el.value = P[el.dataset.k]; }); summary(); }
+  function summary() {
+    $("settings-sum").textContent = "£" + Math.round(P.account).toLocaleString("en-GB") + " · " + P.risk + "% risk · " + P.nights + " nights · " + P.stopAtr + "/" + P.targetAtr + " ATR";
+  }
+  inputs.forEach(function (el) {
+    el.addEventListener("input", function () {
+      var v = parseFloat(el.value);
+      if (!isFinite(v)) return;
+      P[el.dataset.k] = v; store.set("cfd-screen-settings", JSON.stringify(P)); summary(); render();
+    });
+  });
+  $("settings-reset").onclick = function () { P = Object.assign({}, DEFAULTS); store.set("cfd-screen-settings", "{}"); fillSettings(); render(); };
+
+  // Card overrides last for the day of the build they were made against.
+  var buildDay = String(S.built || "").slice(0, 10);
+  var OV = loadJSON("cfd-screen-overrides");
+  if (OV.day !== buildDay) OV = { day: buildDay };
+  function saveOV() { store.set("cfd-screen-overrides", JSON.stringify(OV)); }
+
+  // ------------------------------------------------------- helpers
+  var names = S.names.filter(function (n) { return S.ind[n.symbol]; });
+  var dropped = S.names.filter(function (n) { return !S.ind[n.symbol]; });
+  var indices = names.filter(function (n) { return n.cls === "index"; });
+  function I(n) { return S.ind[n.symbol]; }
+  function U(n) { return n.cls === "index" ? "PTS" : n.unit; }    // display unit: indices quote in points
+  function toGBP(unit) {
+    if (unit === "GBp") return 0.01;
+    if (unit === "GBP") return 1;
+    var r = S.rates[unit]; return r ? 1 / r : NaN;
+  }
+  function fmtP(v, unit) {
+    if (v == null || !isFinite(v)) return "—";
+    var a = Math.abs(v), d = a >= 1000 ? 0 : a >= 100 ? 1 : 2;
+    if (unit === "PTS") return v.toLocaleString("en-GB", { minimumFractionDigits: d, maximumFractionDigits: d });
+    if (unit === "GBp") return v.toLocaleString("en-GB", { minimumFractionDigits: d, maximumFractionDigits: d }) + "p";
+    var sym = unit === "USD" ? "$" : unit === "EUR" ? "€" : "£";
+    return sym + v.toLocaleString("en-GB", { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function gbp(v, signed) {
+    if (!isFinite(v)) return "—";
+    var s = "£" + Math.round(Math.abs(v)).toLocaleString("en-GB");
+    return signed ? (v < 0 ? "−" : "+") + s : (v < 0 ? "−" + s : s);
+  }
+  function pct(x, d) { return (x >= 0 ? "+" : "−") + Math.abs(x * 100).toFixed(d == null ? 1 : d) + "%"; }
+  function daysTo(iso) { var t = new Date(iso + "T12:00:00"); return Math.round((t - new Date(now.toDateString())) / 864e5 - 0.5); }
+  function dayLabel(iso) { return new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }); }
+
+  // ------------------------------------------------------- scoring
+  function trendScore(i, s) {
+    var b = function (x) { return x ? 1 : 0; };
+    var t200 = i.sma200 == null ? 0.5 : b(s * (i.close - i.sma200) > 0);
+    return 10 * (0.30 * b(s * (i.close - i.sma50) > 0) + 0.25 * b(s * (i.slope50 || 0) > 0)
+               + 0.25 * b(s * (i.sma20 - i.sma50) > 0) + 0.20 * t200);
+  }
+  function holdWindow() { return Math.max(1, Math.ceil(P.nights * 7 / 5)); } // calendar days covered by the hold
+  function events(n) {
+    var out = [], win = holdWindow();
+    var e = S.earnings && S.earnings[n.symbol];
+    if (e) { var d = daysTo(e); if (d >= 0) out.push({ kind: "earn", date: e, days: d, inside: d <= win, soon: d <= win + 7, what: "Earnings" }); }
+    (S.macro || []).forEach(function (m) {
+      if (m.markets.indexOf(n.market) < 0) return;
+      var d = daysTo(m.date);
+      if (d >= 0 && d <= win) out.push({ kind: "macro", date: m.date, days: d, inside: true, what: m.what });
+    });
+    return out;
+  }
+  function score(n, s) {
+    var i = I(n), atr = i.atr;
+    var trend = trendScore(i, s);
+    var rsiEff = s > 0 ? i.rsi : 100 - i.rsi;
+    var ext = s * (i.close - i.sma20) / atr;
+    var pull = 0, brk = 0, setupName = "";
+    if (trend >= 7 && ext > -1.5 && ext < 0.75) pull = clamp(10 - Math.abs(rsiEff - 42) * 0.35, 0, 10);
+    var broke = s > 0 ? i.close > i.hi20 : i.close < i.lo20;
+    if (broke && trend >= 5) brk = rsiEff < 75 ? 8 : 5;
+    var setup = Math.max(pull, brk);
+    if (setup > 0) setupName = brk >= pull ? (s > 0 ? "Breakout to a 20-day high" : "Breakdown to a 20-day low")
+                                           : (s > 0 ? "Pullback in an uptrend" : "Bounce in a downtrend");
+    var rs;
+    if (n.cls === "share") {
+      var bench = S.ind[S.benchmarks[n.market]];
+      var ex = bench && i.r63 != null && bench.r63 != null ? (i.r63 - bench.r63) * 100 : 0;
+      rs = clamp(5 + s * ex * 0.25, 0, 10);
+    } else rs = clamp(5 + s * (i.r63 || 0) * 100 * 0.5, 0, 10);
+    var mkt;
+    if (n.cls === "share") { var b = S.ind[S.benchmarks[n.market]]; mkt = b ? trendScore(b, s) : 5; }
+    else mkt = indices.reduce(function (a, x) { return a + trendScore(I(x), s); }, 0) / indices.length;
+    var stretch = clamp((ext - 1.5) * 4, 0, 10);
+    var ev = 0;
+    events(n).forEach(function (e) {
+      if (e.kind === "earn") ev = Math.max(ev, e.inside ? 10 : e.soon ? 3 : 0);
+      else ev = Math.max(ev, n.cls === "index" ? 5 : 2);
+    });
+    var total = clamp(Math.round((0.30 * trend + 0.30 * setup + 0.15 * rs + 0.25 * mkt) * 10 - stretch * 3 - ev * 2.5), 0, 100);
+    return { s: s, total: total, trend: trend, setup: setup, setupName: setupName, rs: rs, mkt: mkt, stretch: stretch, ev: ev, ext: ext, rsiEff: rsiEff };
+  }
+
+  // ------------------------------------------------------- sizing
+  function levels(n, s) {
+    var i = I(n), key = n.id + (s > 0 ? "L" : "S"), o = OV[key] || {};
+    var stop = i.close - s * P.stopAtr * i.atr, target = i.close + s * P.targetAtr * i.atr;
+    return { stop: o.stop != null ? o.stop : stop, target: o.target != null ? o.target : target,
+             autoStop: stop, autoTarget: target, edited: o.stop != null || o.target != null, key: key };
+  }
+  function size(n, s, L) {
+    var i = I(n), k = toGBP(n.unit), c = i.close;
+    var riskGBP = P.account * P.risk / 100;
+    var stopDist = s * (c - L.stop), tgtDist = s * (L.target - c);
+    if (!(stopDist > 0) || !(tgtDist > 0) || !isFinite(k)) return { bad: true };
+    var units = riskGBP / (stopDist * k);
+    var notional = units * c * k;
+    var lev = n.cls === "index" ? P.levIndex : P.levShare;
+    var margin = notional / lev;
+    var gain = units * tgtDist * k;
+    var spreadPct = n.cls === "index" ? P.spreadIndex : n.market === "UK" ? P.spreadUK : P.spreadUS;
+    var spread = notional * spreadPct / 100;
+    var funding = notional * (s > 0 ? P.fundLong : P.fundShort) / 100 / 365 * P.nights;
+    var rr = (gain - spread - funding) / (riskGBP + spread + funding);
+    return { units: units, notional: notional, margin: margin, lev: lev, gain: gain, loss: riskGBP, spread: spread, funding: funding,
+             rr: rr, effLev: notional / P.account, stopDist: stopDist, tgtDist: tgtDist };
+  }
+
+  // ------------------------------------------------------- chart
+  function chart(n, s, L) {
+    var ch = I(n).chart, c = ch.c, W = 600, H = 150, pad = 4;
+    var vals = c.concat(ch.m20, ch.m50, [L.stop, L.target]).filter(function (v) { return v != null; });
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), span = hi - lo || 1;
+    var x = function (k) { return pad + k * (W - 2 * pad - 60) / (c.length - 1); };
+    var y = function (v) { return pad + (hi - v) * (H - 2 * pad) / span; };
+    function line(arr, cls) {
+      var pts = []; arr.forEach(function (v, k) { if (v != null) pts.push(x(k).toFixed(1) + "," + y(v).toFixed(1)); });
+      return '<polyline fill="none" points="' + pts.join(" ") + '" ' + cls + '/>';
+    }
+    var xe = x(c.length - 1);
+    function hline(v, col) { return '<line x1="' + xe + '" x2="' + (W - pad) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="' + col + '" stroke-width="2.5"/>'; }
+    var zone = '<rect x="' + xe + '" width="' + (W - pad - xe) + '" y="' + Math.min(y(L.stop), y(L.target)).toFixed(1) + '" height="' + Math.abs(y(L.stop) - y(L.target)).toFixed(1) + '" fill="var(--panel-2)"/>';
+    return '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Last 90 sessions with the 20 and 50-day averages, the stop and the target">'
+      + zone
+      + line(ch.m50, 'stroke="var(--faint)" stroke-width="1.5" stroke-dasharray="4 4"')
+      + line(ch.m20, 'stroke="var(--cool)" stroke-width="1.5"')
+      + line(c, 'stroke="var(--ink)" stroke-width="2"')
+      + hline(L.target, "var(--up)") + hline(L.stop, "var(--down)")
+      + '<circle cx="' + xe + '" cy="' + y(c[c.length - 1]).toFixed(1) + '" r="4" fill="var(--accent)"/>'
+      + '</svg>';
+  }
+
+  // ------------------------------------------------------- render: bias
+  function renderBias() {
+    var ups = 0, downs = 0;
+    $("bias").innerHTML = indices.map(function (n) {
+      var i = I(n), L = trendScore(i, 1), Sh = trendScore(i, -1);
+      var cls = L >= 7 ? "up" : Sh >= 7 ? "down" : "mixed";
+      if (cls === "up") ups++; if (cls === "down") downs++;
+      var vs50 = (i.close / i.sma50 - 1);
+      return '<div class="' + cls + '"><b>' + esc(n.name) + '</b><span class="dir">' + (cls === "up" ? "Uptrend" : cls === "down" ? "Downtrend" : "Mixed") + '</span>'
+        + '<span class="m num">Week ' + pct(i.r5 || 0) + ' · ' + pct(vs50) + ' vs 50d</span></div>';
+    }).join("");
+    $("bias-sum").textContent = ups >= 3 ? "Broad uptrend: shorts are fighting the tape, so expect few of them to score." :
+      downs >= 3 ? "Broad downtrend: shorts have the wind behind them, and longs are fighting the tape." :
+      "No clear direction across the indices: setups are scored lower on the market input either way.";
+  }
+
+  // ------------------------------------------------------- render: cards
+  var sortMode = "score", filterMode = "all";
+  function render() {
+    var rows = names.map(function (n) {
+      var lg = score(n, 1), sh = score(n, -1), best = lg.total >= sh.total ? lg : sh, other = best === lg ? sh : lg;
+      var L = levels(n, best.s);
+      return { n: n, best: best, other: other, L: L, z: size(n, best.s, L) };
+    });
+    var trades = rows.filter(function (r) { return r.best.setup > 0 && r.best.total >= 55; });
+    var quiet = rows.filter(function (r) { return trades.indexOf(r) < 0; });
+
+    var shown = trades.filter(function (r) {
+      return filterMode === "all" || (filterMode === "long" && r.best.s > 0) || (filterMode === "short" && r.best.s < 0) || (filterMode === "index" && r.n.cls === "index");
+    });
+    shown.sort(sortMode === "rr" ? function (a, b) { return (b.z.rr || -9) - (a.z.rr || -9); } : function (a, b) { return b.best.total - a.best.total; });
+
+    $("cards").innerHTML = shown.length ? shown.map(card).join("") :
+      '<div class="empty">Nothing passes on this filter today. That is a result, not a fault: the screen only lists a side with a setup and a score of 55 or more.</div>';
+
+    quiet.sort(function (a, b) { return b.best.total - a.best.total; });
+    $("quiet").innerHTML = quiet.map(function (r) {
+      var i = I(r.n), lg = r.best.s > 0 ? r.best : r.other, sh = r.best.s > 0 ? r.other : r.best;
+      var why = r.best.setup === 0 ? (Math.max(lg.trend, sh.trend) < 7 ? "Trend mixed, no setup" : (r.best.ext >= 0.75 ? "Trending, but stretched from the 20-day" : "Trending, no entry yet"))
+              : "Setup present, score " + r.best.total;
+      return '<li><span><b>' + esc(r.n.name) + '</b> <span class="num">' + fmtP(i.close, U(r.n)) + '</span><small>' + esc(why) + '</small></span>'
+        + '<span class="sc">Long <b class="l">' + lg.total + '</b> · Short <b class="s">' + sh.total + '</b></span></li>';
+    }).join("");
+
+    wireCards();
+  }
+
+  function bar(label, v, pen) {
+    return '<div class="bar"><span>' + label + '</span><span class="track"><span class="fill' + (pen ? " pen" : "") + '" style="width:' + (v * 10).toFixed(0) + '%"></span></span><b>' + (pen && v ? "−" : "") + v.toFixed(1) + '</b></div>';
+  }
+
+  function card(r, idx) {
+    var n = r.n, i = I(n), b = r.best, s = b.s, L = r.L, z = r.z, side = s > 0 ? "long" : "short";
+    var dayChg = i.prev ? i.close / i.prev - 1 : 0;
+    var evs = events(n), flags = "";
+    evs.forEach(function (e) {
+      if (e.inside) flags += '<div class="flag' + (e.kind === "earn" ? " bad" : "") + '"><b>' + esc(e.what) + ' ' + esc(dayLabel(e.date)) + '</b>, inside your ' + P.nights + '-night hold. ' + (e.kind === "earn" ? "Earnings can gap the price straight through the stop." : "Expect a volatile session.") + '</div>';
+      else if (e.soon) flags += '<div class="flag">Earnings ' + esc(dayLabel(e.date)) + ', just after your hold. Be out before it.</div>';
+    });
+    if (!z.bad && z.margin > P.account) flags += '<div class="flag bad">Margin of ' + gbp(z.margin) + ' is more than the account. Widen the stop or cut the risk.</div>';
+    else if (!z.bad && z.margin > P.account * 0.4) flags += '<div class="flag">This one trade ties up ' + Math.round(z.margin / P.account * 100) + '% of the account in margin.</div>';
+    if (i.bar && daysTo(i.bar) < -4) flags += '<div class="flag">Last price is from ' + esc(dayLabel(i.bar)) + '. Treat it as stale.</div>';
+
+    var pT = (L.target / i.close - 1), pS = (L.stop / i.close - 1);
+    var trade = z.bad ? '<div class="trade"><h4>Your trade</h4><p>The stop or target is on the wrong side of the price. Fix the levels below.</p>' :
+      '<div class="trade"><h4>Your trade · ' + (n.cfd || n.symbol) + ' · ' + z.lev + ':1</h4><div class="tgrid">'
+      + '<div><span>Size</span><b>' + z.units.toLocaleString("en-GB", { maximumFractionDigits: z.units < 10 ? 2 : 0 }) + '</b></div>'
+      + '<div><span>Exposure</span><b>' + gbp(z.notional) + '</b></div>'
+      + '<div><span>Margin</span><b>' + gbp(z.margin) + '</b></div>'
+      + '<div><span>On account</span><b>' + z.effLev.toFixed(1) + '×</b></div>'
+      + '<div><span>At target</span><b class="pos">' + gbp(z.gain, true) + '</b></div>'
+      + '<div><span>At stop</span><b class="neg">' + gbp(-z.loss, true) + '</b></div>'
+      + '<div><span>Spread</span><b>' + gbp(-z.spread, true) + '</b></div>'
+      + '<div><span>Funding ×' + P.nights + '</span><b>' + gbp(-z.funding, true) + '</b></div>'
+      + '</div>';
+    var cur = n.unit === "GBP" ? "£" : n.unit === "USD" ? "$" : "€";
+    if (!z.bad) trade += '<p>' + (n.cls === "index" ? "Size is in units of " + cur + "1 a point, so this is " + cur + z.units.toFixed(2) + " for every point the index moves" : "Size is in shares") + '. Net of costs the trade makes <b>' + z.rr.toFixed(2) + '</b> for every 1 it risks.</p>';
+    trade += '<div class="edit"><label class="eu"><span>If it works</span><input type="number" step="any" data-key="' + L.key + '" data-f="target" value="' + +L.target.toPrecision(6) + '"' + (OV[L.key] && OV[L.key].target != null ? ' class="edited"' : '') + '></label>'
+      + '<label class="ed"><span>If it fails</span><input type="number" step="any" data-key="' + L.key + '" data-f="stop" value="' + +L.stop.toPrecision(6) + '"' + (OV[L.key] && OV[L.key].stop != null ? ' class="edited"' : '') + '></label>'
+      + '<button class="reset" type="button" data-reset="' + L.key + '"' + (L.edited ? "" : " disabled") + '>Reset</button></div></div>';
+
+    return '<article class="card ' + side + '" id="c-' + n.id + '">'
+      + '<div class="who"><span class="rank">' + (idx + 1) + '</span><span class="side ' + side + '">' + side.toUpperCase() + '</span><h3>' + esc(n.name) + '</h3>'
+      + '<span class="tag' + (n.cls === "index" ? " index" : "") + '">' + (n.cls === "index" ? "Index" : n.market + " share") + '</span>'
+      + (n.watch ? '<span class="tag watch">Watchlist</span>' : '') + '</div>'
+      + '<p class="meta"><b>' + esc(b.setupName) + '</b> · ' + esc(n.symbol) + ' · ' + pct(dayChg) + ' today · RSI ' + i.rsi.toFixed(0) + '</p>'
+      + '<div class="levels">'
+      + '<div class="lvl now"><span class="k">Price now</span><span class="v">' + fmtP(i.close, U(n)) + '</span><span class="w">Close of ' + esc(dayLabel(i.bar)) + ' bar · ATR ' + fmtP(i.atr, U(n)) + '</span></div>'
+      + '<div class="lvl up"><span class="k">If it works</span><span class="v">' + fmtP(L.target, U(n)) + '<small>' + pct(pT) + '</small></span><span class="w">' + (OV[L.key] && OV[L.key].target != null ? "Your level" : P.targetAtr + " ATR " + (s > 0 ? "above" : "below")) + ' · 20-day ' + (s > 0 ? "high " + fmtP(i.hi20, U(n)) : "low " + fmtP(i.lo20, U(n))) + '</span></div>'
+      + '<div class="lvl dn"><span class="k">If it fails</span><span class="v">' + fmtP(L.stop, U(n)) + '<small>' + pct(pS) + '</small></span><span class="w">' + (OV[L.key] && OV[L.key].stop != null ? "Your level" : P.stopAtr + " ATR " + (s > 0 ? "below" : "above")) + ' · 50-day ' + fmtP(i.sma50, U(n)) + '</span></div>'
+      + '</div>'
+      + chart(n, s, L)
+      + '<div class="chart-key"><span><i style="border-color:var(--ink)"></i>Price</span><span><i style="border-color:var(--cool)"></i>20-day</span><span><i style="border-color:var(--faint);border-top-style:dashed"></i>50-day</span><span><i style="border-color:var(--up)"></i>Target</span><span><i style="border-color:var(--down)"></i>Stop</span></div>'
+      + flags + trade
+      + '<div class="scoreline"><div class="score"><span class="v">' + b.total + '</span><span class="k">' + side + ' score</span></div>'
+      + '<div class="score rr"><span class="v">' + (z.bad ? "—" : z.rr.toFixed(2)) + '</span><span class="k">Net R:R</span></div>'
+      + '<div class="score other"><span class="v">' + r.other.total + '</span><span class="k">' + (s > 0 ? "short" : "long") + ' score</span></div></div>'
+      + '<details class="why"><summary>Why ' + side + '</summary><div class="bars">'
+      + bar("Trend", b.trend) + bar("Setup", b.setup) + bar("Relative strength", b.rs) + bar("Market", b.mkt)
+      + bar("Stretch (penalty)", b.stretch, true) + bar("Event (penalty)", b.ev, true) + '</div>'
+      + '<p class="facts num">50-day ' + fmtP(i.sma50, U(n)) + ' · 200-day ' + fmtP(i.sma200, U(n)) + ' · ' + b.ext.toFixed(1) + ' ATR ' + (s > 0 ? "above" : "below") + ' the 20-day · 1 month ' + pct(i.r21 || 0) + ' · 3 months ' + pct(i.r63 || 0) + ' · 52-week ' + fmtP(i.low52, U(n)) + '–' + fmtP(i.high52, U(n))
+      + (S.earnings && S.earnings[n.symbol] ? ' · next earnings ' + esc(dayLabel(S.earnings[n.symbol])) : '') + '</p></details>'
+      + '</article>';
+  }
+
+  function wireCards() {
+    document.querySelectorAll(".edit input").forEach(function (el) {
+      el.addEventListener("change", function () {
+        var v = parseFloat(el.value), k = el.dataset.key;
+        OV[k] = OV[k] || {};
+        if (isFinite(v) && v > 0) OV[k][el.dataset.f] = v; else delete OV[k][el.dataset.f];
+        saveOV(); render();
+      });
+    });
+    document.querySelectorAll(".edit .reset").forEach(function (el) {
+      el.onclick = function () { delete OV[el.dataset.reset]; saveOV(); render(); };
+    });
+  }
+
+  document.querySelectorAll(".chip[data-filter]").forEach(function (el) {
+    el.onclick = function () { filterMode = el.dataset.filter; document.querySelectorAll(".chip[data-filter]").forEach(function (c) { c.setAttribute("aria-pressed", c === el); }); render(); };
+  });
+  document.querySelectorAll(".chip[data-sort]").forEach(function (el) {
+    el.onclick = function () { sortMode = el.dataset.sort; document.querySelectorAll(".chip[data-sort]").forEach(function (c) { c.setAttribute("aria-pressed", c === el); }); render(); };
+  });
+
+  // ------------------------------------------------------- static parts
+  var built = S.built ? new Date(S.built) : null;
+  var ageH = built ? (now - built) / 36e5 : 99;
+  $("stamp").textContent = built ? "Prices as of " + built.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " UK, delayed. " + names.length + " instruments." : "";
+  if (ageH > 30) $("stamp").className = "stamp stale";
+
+  var upcoming = [];
+  (S.macro || []).forEach(function (m) { var d = daysTo(m.date); if (d >= 0 && d <= 21) upcoming.push({ date: m.date, what: m.what, who: m.markets.join(", ") }); });
+  names.forEach(function (n) { var e = S.earnings && S.earnings[n.symbol]; if (e) { var d = daysTo(e); if (d >= 0 && d <= 21) upcoming.push({ date: e, what: n.name + " earnings", who: n.market + " share" }); } });
+  upcoming.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+  $("events").innerHTML = upcoming.length ? upcoming.map(function (e) {
+    return '<li><span><b>' + esc(e.what) + '</b><small>' + esc(e.who) + '</small></span><span class="sc">' + esc(dayLabel(e.date)) + '</span></li>';
+  }).join("") : '<li><span>Nothing dated in the next three weeks.</span></li>';
+
+  $("note").innerHTML = "Daily bars from Yahoo Finance, delayed by about 15 minutes and rebuilt four times each weekday. Index prices are the cash index, which Trading 212's CFD tracks closely but not exactly. Earnings dates come from Yahoo, and central bank dates from the Fed, ECB and Bank of England calendars (" + esc(S.asof) + ")."
+    + (dropped.length ? " No data this build for: " + esc(dropped.map(function (n) { return n.name; }).join(", ")) + "." : "")
+    + " Scores are mechanical trend-following rules and the levels are ATR multiples, not forecasts. Settings and level overrides are saved in this browser only. Nothing here is investment advice.";
+
+  fillSettings();
+  renderBias();
+  render();
+})();
+</script>
+</body>
+</html>

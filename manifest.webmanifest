@@ -1,0 +1,14 @@
+{
+ "name": "CFD Screen",
+ "short_name": "CFD Screen",
+ "id": "/cfd-screen/",
+ "start_url": "/cfd-screen/",
+ "scope": "/cfd-screen/",
+ "display": "standalone",
+ "background_color": "#131519",
+ "theme_color": "#131519",
+ "icons": [
+  {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+  {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+ ]
+}
