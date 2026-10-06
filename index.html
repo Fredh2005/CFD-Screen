@@ -6,13 +6,15 @@
 <title>CFD Screen</title>
 <meta name="description" content="Long and short swing setups on major indices and large-cap shares, sized for leverage, margin, spread and overnight funding — rebuilt on fresh prices every weekday.">
 <meta name="theme-color" content="#F6F7F5" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#131519" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#0A0C10" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="CFD Screen">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
 <script>
 try {
   // Dark by default. A choice made here, or in the other apps on this origin, wins.
@@ -31,15 +33,15 @@ try {
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme=light]) {
-    --bg:#131519; --panel:#1B1E24; --panel-2:#22262D; --ink:#EDEFF2; --soft:#A2AAB5; --faint:#79818C;
-    --line:#2C3138; --accent:#4FB5B0; --accent-2:#13322F; --up:#6DBE8E; --up-2:#16301F;
-    --down:#E87A70; --down-2:#39211E; --warn:#D9A244; --warn-2:#352A14; --cool:#72A8D4; --cool-2:#1A2B38;
+    --bg:#0A0C10; --panel:#11151B; --panel-2:#171C24; --ink:#E9EDF2; --soft:#9AA4B2; --faint:#6B7480;
+    --line:#1F2630; --accent:#3FD0C4; --accent-2:#0D2A29; --up:#3DDC97; --up-2:#0E2A1E;
+    --down:#FF6B6B; --down-2:#2E1517; --warn:#F2B84B; --warn-2:#2D2312; --cool:#6CB6FF; --cool-2:#132436; --glow:.16;
   }
 }
 :root[data-theme=dark] {
-  --bg:#131519; --panel:#1B1E24; --panel-2:#22262D; --ink:#EDEFF2; --soft:#A2AAB5; --faint:#79818C;
-  --line:#2C3138; --accent:#4FB5B0; --accent-2:#13322F; --up:#6DBE8E; --up-2:#16301F;
-  --down:#E87A70; --down-2:#39211E; --warn:#D9A244; --warn-2:#352A14; --cool:#72A8D4; --cool-2:#1A2B38;
+  --bg:#0A0C10; --panel:#11151B; --panel-2:#171C24; --ink:#E9EDF2; --soft:#9AA4B2; --faint:#6B7480;
+  --line:#1F2630; --accent:#3FD0C4; --accent-2:#0D2A29; --up:#3DDC97; --up-2:#0E2A1E;
+  --down:#FF6B6B; --down-2:#2E1517; --warn:#F2B84B; --warn-2:#2D2312; --cool:#6CB6FF; --cool-2:#132436; --glow:.16;
 }
 * { box-sizing:border-box; -webkit-text-size-adjust:100%; }
 body { margin:0; background:var(--bg); color:var(--ink);
@@ -165,6 +167,68 @@ details.meth summary { padding:14px 0; cursor:pointer; font-weight:600; }
 details.meth .body { padding:0 0 14px; color:var(--soft); font-size:15px; }
 details.meth code { background:var(--panel-2); padding:1px 5px; border-radius:4px; font-size:13.5px; color:var(--ink); }
 .note { color:var(--faint); font-size:13.5px; line-height:1.55; margin-top:40px; padding-top:18px; border-top:1px solid var(--line); }
+
+@media (max-width:420px) { .quiet li { flex-wrap:wrap; } .quiet .sc { white-space:normal; text-align:left; } }
+/* ---- terminal look ---------------------------------------------------- */
+:root { --mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; --glow:.10; }
+body { font-family:Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background:radial-gradient(900px 420px at 50% -160px, color-mix(in srgb, var(--accent) calc(var(--glow) * 100%), transparent), transparent 70%) no-repeat, var(--bg); }
+.num, .lvl .v, .tgrid b, .score .v, .bias .m, .bias .chg, .edit input, .grid input, .quiet .sc, .facts, .meta .px, .stamp { font-family:var(--mono); letter-spacing:-.02em; }
+h1 { letter-spacing:.22em; font-size:13px; }
+.title { font-size:36px; font-weight:800; letter-spacing:-.035em; background:linear-gradient(90deg, var(--ink) 30%, var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.stamp { font-size:12.5px; display:flex; align-items:center; gap:8px; }
+.live { width:8px; height:8px; border-radius:50%; background:var(--up); box-shadow:0 0 0 0 color-mix(in srgb, var(--up) 60%, transparent); animation:pulse 2s infinite; flex:none; }
+.stamp.stale .live { background:var(--warn); animation:none; }
+@keyframes pulse { 0% { box-shadow:0 0 0 0 color-mix(in srgb, var(--up) 55%, transparent); } 70% { box-shadow:0 0 0 9px transparent; } 100% { box-shadow:0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) { .live { animation:none; } .card { transition:none; } }
+h2 { letter-spacing:.2em; font-size:12px; border-bottom:none; position:relative; }
+h2::after { content:""; position:absolute; left:0; right:0; bottom:0; height:1px; background:linear-gradient(90deg, var(--accent), var(--line) 30%, transparent); }
+
+.bias div { position:relative; overflow:hidden; border-top-width:1px; background:linear-gradient(180deg, var(--panel), var(--panel-2)); padding-bottom:44px; }
+.bias div.up { border-color:color-mix(in srgb, var(--up) 35%, var(--line)); } .bias div.down { border-color:color-mix(in srgb, var(--down) 35%, var(--line)); }
+.bias .chg { display:block; font-size:13px; font-weight:700; margin:2px 0 0; }
+.bias .up .chg { color:var(--up); } .bias .down .chg { color:var(--down); } .bias .mixed .chg { color:var(--soft); }
+.bias svg.spark { position:absolute; left:0; right:0; bottom:0; width:100%; height:40px; }
+
+.chip { transition:all .15s; }
+.chip[aria-pressed=true] { color:var(--bg); box-shadow:0 0 16px -4px var(--accent); }
+
+.card, .card.long, .card.short { border-left:1px solid var(--line); position:relative; overflow:hidden; transition:transform .15s, box-shadow .2s, border-color .2s; }
+.card::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--line); }
+.card.long::before { background:linear-gradient(180deg, var(--up), transparent 85%); }
+.card.short::before { background:linear-gradient(180deg, var(--down), transparent 85%); }
+.card.long { background:radial-gradient(520px 180px at 0 0, color-mix(in srgb, var(--up) calc(var(--glow) * 100%), transparent), transparent 70%), var(--panel); }
+.card.short { background:radial-gradient(520px 180px at 0 0, color-mix(in srgb, var(--down) calc(var(--glow) * 100%), transparent), transparent 70%), var(--panel); }
+@media (hover:hover) {
+  .card.long:hover { transform:translateY(-2px); border-color:color-mix(in srgb, var(--up) 40%, var(--line)); box-shadow:0 14px 40px -18px color-mix(in srgb, var(--up) 55%, transparent); }
+  .card.short:hover { transform:translateY(-2px); border-color:color-mix(in srgb, var(--down) 40%, var(--line)); box-shadow:0 14px 40px -18px color-mix(in srgb, var(--down) 55%, transparent); }
+}
+.side { letter-spacing:.16em; font-size:13px; padding:6px 12px; }
+.side.long { box-shadow:0 0 22px -4px var(--up); } .side.short { box-shadow:0 0 22px -4px var(--down); }
+.side::before { margin-right:6px; } .side.long::before { content:"▲"; } .side.short::before { content:"▼"; }
+.meta .px { color:var(--ink); }
+
+.lvl { border:1px solid var(--line); }
+.lvl.now { border-color:color-mix(in srgb, var(--accent) 30%, transparent); }
+.lvl.up { border-color:color-mix(in srgb, var(--up) 30%, transparent); }
+.lvl.dn { border-color:color-mix(in srgb, var(--down) 30%, transparent); }
+.lvl .v { font-weight:700; letter-spacing:-.04em; }
+
+.trade { border:1px solid var(--line); background:linear-gradient(180deg, var(--panel-2), var(--panel)); }
+.tgrid b.pos { text-shadow:0 0 18px color-mix(in srgb, var(--up) 50%, transparent); }
+.tgrid b.neg { text-shadow:0 0 18px color-mix(in srgb, var(--down) 50%, transparent); }
+
+.scoreline { align-items:center; }
+.ring { position:relative; width:72px; height:72px; }
+.ring svg { width:72px; height:72px; transform:rotate(-90deg); }
+.ring circle { fill:none; stroke-width:6; }
+.ring .trk { stroke:var(--line); }
+.ring .val { stroke-linecap:round; }
+.ring.long .val { stroke:var(--up); filter:drop-shadow(0 0 4px color-mix(in srgb, var(--up) 70%, transparent)); }
+.ring.short .val { stroke:var(--down); filter:drop-shadow(0 0 4px color-mix(in srgb, var(--down) 70%, transparent)); }
+.ring b { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font:700 22px/1 var(--mono); }
+.score.main { display:flex; align-items:center; gap:10px; }
+.score.main .k { margin:0; }
 </style>
 </head>
 <body>
@@ -409,14 +473,20 @@ details.meth code { background:var(--panel-2); padding:1px 5px; border-radius:4p
     }
     var xe = x(c.length - 1);
     function hline(v, col) { return '<line x1="' + xe + '" x2="' + (W - pad) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="' + col + '" stroke-width="2.5"/>'; }
-    var zone = '<rect x="' + xe + '" width="' + (W - pad - xe) + '" y="' + Math.min(y(L.stop), y(L.target)).toFixed(1) + '" height="' + Math.abs(y(L.stop) - y(L.target)).toFixed(1) + '" fill="var(--panel-2)"/>';
+    var yc = y(c[c.length - 1]), gid = "g-" + n.id, col = s > 0 ? "var(--up)" : "var(--down)";
+    function band(v, colr) { var a = Math.min(yc, y(v)), h = Math.abs(yc - y(v)); return '<rect x="' + xe + '" width="' + (W - pad - xe) + '" y="' + a.toFixed(1) + '" height="' + h.toFixed(1) + '" fill="' + colr + '" opacity=".18"/>'; }
+    function faint(v, colr) { return '<line x1="' + pad + '" x2="' + xe + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="' + colr + '" stroke-width="1" stroke-dasharray="2 5" opacity=".55"/>'; }
+    var pts = c.map(function (v, k) { return x(k).toFixed(1) + "," + y(v).toFixed(1); });
+    var area = '<polygon points="' + x(0).toFixed(1) + ',' + H + ' ' + pts.join(" ") + ' ' + xe.toFixed(1) + ',' + H + '" fill="url(#' + gid + ')"/>';
+    var zone = '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + col + '" stop-opacity=".28"/><stop offset="1" stop-color="' + col + '" stop-opacity="0"/></linearGradient></defs>'
+      + area + band(L.target, "var(--up)") + band(L.stop, "var(--down)") + faint(L.target, "var(--up)") + faint(L.stop, "var(--down)");
     return '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Last 90 sessions with the 20 and 50-day averages, the stop and the target">'
       + zone
       + line(ch.m50, 'stroke="var(--faint)" stroke-width="1.5" stroke-dasharray="4 4"')
       + line(ch.m20, 'stroke="var(--cool)" stroke-width="1.5"')
       + line(c, 'stroke="var(--ink)" stroke-width="2"')
       + hline(L.target, "var(--up)") + hline(L.stop, "var(--down)")
-      + '<circle cx="' + xe + '" cy="' + y(c[c.length - 1]).toFixed(1) + '" r="4" fill="var(--accent)"/>'
+      + '<circle cx="' + xe + '" cy="' + yc.toFixed(1) + '" r="9" fill="' + col + '" opacity=".25"/><circle cx="' + xe + '" cy="' + yc.toFixed(1) + '" r="4" fill="' + col + '"/>'
       + '</svg>';
   }
 
@@ -428,8 +498,13 @@ details.meth code { background:var(--panel-2); padding:1px 5px; border-radius:4p
       var cls = L >= 7 ? "up" : Sh >= 7 ? "down" : "mixed";
       if (cls === "up") ups++; if (cls === "down") downs++;
       var vs50 = (i.close / i.sma50 - 1);
-      return '<div class="' + cls + '"><b>' + esc(n.name) + '</b><span class="dir">' + (cls === "up" ? "Uptrend" : cls === "down" ? "Downtrend" : "Mixed") + '</span>'
-        + '<span class="m num">Week ' + pct(i.r5 || 0) + ' · ' + pct(vs50) + ' vs 50d</span></div>';
+      var cc = i.chart.c.slice(-60), lo = Math.min.apply(null, cc), hi = Math.max.apply(null, cc), sp = hi - lo || 1;
+      var pts = cc.map(function (v, k) { return (k * 200 / (cc.length - 1)).toFixed(1) + "," + (4 + (hi - v) * 32 / sp).toFixed(1); }).join(" ");
+      var colr = cls === "up" ? "var(--up)" : cls === "down" ? "var(--down)" : "var(--faint)";
+      var spark = '<svg class="spark" viewBox="0 0 200 40" preserveAspectRatio="none"><defs><linearGradient id="b-' + n.id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + colr + '" stop-opacity=".35"/><stop offset="1" stop-color="' + colr + '" stop-opacity="0"/></linearGradient></defs>'
+        + '<polygon points="0,40 ' + pts + ' 200,40" fill="url(#b-' + n.id + ')"/><polyline points="' + pts + '" fill="none" stroke="' + colr + '" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>';
+      return '<div class="' + cls + '"><b>' + esc(n.name) + '</b><span class="chg">' + pct(i.prev ? i.close / i.prev - 1 : 0) + ' today</span><span class="dir">' + (cls === "up" ? "Uptrend" : cls === "down" ? "Downtrend" : "Mixed") + '</span>'
+        + '<span class="m">Week ' + pct(i.r5 || 0) + ' · ' + pct(vs50) + ' vs 50d</span>' + spark + '</div>';
     }).join("");
     $("bias-sum").textContent = ups >= 3 ? "Broad uptrend: shorts are fighting the tape, so expect few of them to score." :
       downs >= 3 ? "Broad downtrend: shorts have the wind behind them, and longs are fighting the tape." :
@@ -505,7 +580,7 @@ details.meth code { background:var(--panel-2); padding:1px 5px; border-radius:4p
       + '<div class="who"><span class="rank">' + (idx + 1) + '</span><span class="side ' + side + '">' + side.toUpperCase() + '</span><h3>' + esc(n.name) + '</h3>'
       + '<span class="tag' + (n.cls === "index" ? " index" : "") + '">' + (n.cls === "index" ? "Index" : n.market + " share") + '</span>'
       + (n.watch ? '<span class="tag watch">Watchlist</span>' : '') + '</div>'
-      + '<p class="meta"><b>' + esc(b.setupName) + '</b> · ' + esc(n.symbol) + ' · ' + pct(dayChg) + ' today · RSI ' + i.rsi.toFixed(0) + '</p>'
+      + '<p class="meta"><b>' + esc(b.setupName) + '</b> · ' + esc(n.symbol) + ' · <span class="px">' + pct(dayChg) + '</span> today · RSI <span class="px">' + i.rsi.toFixed(0) + '</span></p>'
       + '<div class="levels">'
       + '<div class="lvl now"><span class="k">Price now</span><span class="v">' + fmtP(i.close, U(n)) + '</span><span class="w">Close of ' + esc(dayLabel(i.bar)) + ' bar · ATR ' + fmtP(i.atr, U(n)) + '</span></div>'
       + '<div class="lvl up"><span class="k">If it works</span><span class="v">' + fmtP(L.target, U(n)) + '<small>' + pct(pT) + '</small></span><span class="w">' + (OV[L.key] && OV[L.key].target != null ? "Your level" : P.targetAtr + " ATR " + (s > 0 ? "above" : "below")) + ' · 20-day ' + (s > 0 ? "high " + fmtP(i.hi20, U(n)) : "low " + fmtP(i.lo20, U(n))) + '</span></div>'
@@ -514,7 +589,7 @@ details.meth code { background:var(--panel-2); padding:1px 5px; border-radius:4p
       + chart(n, s, L)
       + '<div class="chart-key"><span><i style="border-color:var(--ink)"></i>Price</span><span><i style="border-color:var(--cool)"></i>20-day</span><span><i style="border-color:var(--faint);border-top-style:dashed"></i>50-day</span><span><i style="border-color:var(--up)"></i>Target</span><span><i style="border-color:var(--down)"></i>Stop</span></div>'
       + flags + trade
-      + '<div class="scoreline"><div class="score"><span class="v">' + b.total + '</span><span class="k">' + side + ' score</span></div>'
+      + '<div class="scoreline"><div class="score main"><div class="ring ' + side + '"><svg viewBox="0 0 72 72"><circle class="trk" cx="36" cy="36" r="30"/><circle class="val" cx="36" cy="36" r="30" stroke-dasharray="' + (b.total / 100 * 188.5).toFixed(1) + ' 999"/></svg><b>' + b.total + '</b></div><span class="k">' + side + '<br>score</span></div>'
       + '<div class="score rr"><span class="v">' + (z.bad ? "—" : z.rr.toFixed(2)) + '</span><span class="k">Net R:R</span></div>'
       + '<div class="score other"><span class="v">' + r.other.total + '</span><span class="k">' + (s > 0 ? "short" : "long") + ' score</span></div></div>'
       + '<details class="why"><summary>Why ' + side + '</summary><div class="bars">'
@@ -549,7 +624,8 @@ details.meth code { background:var(--panel-2); padding:1px 5px; border-radius:4p
   // ------------------------------------------------------- static parts
   var built = S.built ? new Date(S.built) : null;
   var ageH = built ? (now - built) / 36e5 : 99;
-  $("stamp").textContent = built ? "Prices as of " + built.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " UK, delayed. " + names.length + " instruments." : "";
+  $("stamp").innerHTML = '<span class="live"></span>';
+  $("stamp").appendChild(document.createTextNode(built ? "Prices as of " + built.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " UK, delayed. " + names.length + " instruments." : ""));
   if (ageH > 30) $("stamp").className = "stamp stale";
 
   var upcoming = [];

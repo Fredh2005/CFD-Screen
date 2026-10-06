@@ -1,7 +1,7 @@
 // Cache the last build so opening the icon offline still shows the screen.
 // The page is rebuilt server-side on a schedule, so the network copy always
 // wins when there is a network.
-const CACHE = 'cfd-screen-v1';
+const CACHE = 'cfd-screen-v2';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './apple-touch-icon.png'];
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
