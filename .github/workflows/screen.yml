@@ -1,15 +1,18 @@
 name: Build the CFD screen
 
 # Rebuilds the page on fresh daily bars four times each weekday - after the
-# London open, after the US open, at the London close and after the US close -
-# and on every push to main. GitHub's scheduler is best-effort and often late;
-# for a few-day hold that costs a stale hour, not a wrong trade.
+# London open, after the US open, after the London close and after the US
+# close - and on every push to main. Cron runs in UTC, so these times are set
+# for winter (GMT) and simply run an hour later in summer (BST), which still
+# lands after each open and close; nothing to change when the clocks go.
+# GitHub's scheduler is best-effort and often late; for a few-day hold that
+# costs a stale hour, not a wrong trade.
 on:
   schedule:
-    - cron: "20 7 * * 1-5"    # 08:20 UK in BST / 07:20 in GMT
-    - cron: "50 13 * * 1-5"   # 14:50 UK in BST - twenty minutes after the US open
-    - cron: "45 15 * * 1-5"   # 16:45 UK in BST - after the LSE close
-    - cron: "20 20 * * 1-5"   # 21:20 UK in BST - after the US close
+    - cron: "20 8 * * 1-5"    # 08:20 UK in GMT / 09:20 in BST - after the London open
+    - cron: "50 14 * * 1-5"   # 14:50 UK in GMT / 15:50 in BST - after the US open
+    - cron: "45 16 * * 1-5"   # 16:45 UK in GMT / 17:45 in BST - after the London close
+    - cron: "20 21 * * 1-5"   # 21:20 UK in GMT / 22:20 in BST - after the US close
   push:
     branches: [main]
   workflow_dispatch:
